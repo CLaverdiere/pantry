@@ -16,4 +16,5 @@ Pantry is an app for sharing groceries with your neighbor.
 
 ## Ideas
 
-Food condition (good, rotten, molding, etc) based on timestamps and food APIs.
+Food condition (good, rotten, molding, etc) based on timestamps and food APIs
+(Yummly?).

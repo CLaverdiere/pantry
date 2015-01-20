@@ -13,14 +13,12 @@ class User(db.Model):
     real_name = db.Column(db.String(80), unique=True)
     address = db.Column(db.String(120))
     email = db.Column(db.String(120), unique=True)
-    items_available = db.Column(db.String(1000))
-    items_desired = db.Column(db.String(1000))
     points = db.Column(db.Integer)
     num_given = db.Column(db.Integer)
     num_bought = db.Column(db.Integer)
     geo_x = db.Column(db.Float)
     geo_y = db.Column(db.Float)
-    created_at = db.Column(db.TIMESTAMP) # TODO fix this being 0.
+    created_at = db.Column(db.DateTime, default=db.func.now()) # TODO fix this being 0.
 
     def __init__(self, username, password, real_name, address, email):
         self.username = username
@@ -55,13 +53,31 @@ class User(db.Model):
         return '<User {} {} {} {}' \
                 .format(self.username, self.real_name, self.address, self.email)
 
+class Food(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    owner = db.Column(db.String(80))
+    quantity = db.Column(db.Integer)
+    desired = db.Column(db.Boolean)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+    def __init__(self, name, owner, quantity, desired):
+        self.name = name
+        self.owner = owner
+        self.quantity = quantity
+        self.desired = desired
+
+    def __repr__(self):
+        return 'Food {} {} {} {}' \
+               .format(self.name, self.owner, self.quantity)
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name_from = db.Column(db.String(80))
     name_to = db.Column(db.String(80))
     item = db.Column(db.String(80))
     price = db.Column(db.Float)
-    created_at = db.Column(db.TIMESTAMP)
+    created_at = db.Column(db.DateTime, default=db.func.now())
 
     def __init__(self, name_from, name_to, item, price):
         self.name_from = name_from
