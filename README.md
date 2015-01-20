@@ -2,18 +2,14 @@
 
 Pantry is an app for sharing groceries with your neighbor.
 
-## Usage
-
-*TODO*
-
 ## Tech
 
-- Swift
 - Flask
-- SQLAlchemy
+- Bootstrap
+- Sqlite3
 
-## Developers
+## Contributors
 
-- Chris Laverdiere
-- Kevin Coxe
-- Michael Neary
+- Chris Laverdiere (continued)
+- Kevin Coxe (hackathon)
+- Michael Neary (hackathon)
