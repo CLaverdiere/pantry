@@ -25,11 +25,12 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             {% if current_user.is_authenticated() %}
-              <li><a href="logout">Logout</a></li>
+              
+              <li><a href="logout"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
             {% else %}
-              <li><a href="examples">Examples</a></li>
-              <li><a href="register">Register</a></li>
-              <li><a href="login">Login</a></li>
+              <li><a href="examples"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> Examples</a></li>
+              <li><a href="register"><span class="glyphicon glyphicon-check" aria-hidden="true"></span> Register</a></li>
+              <li><a href="login"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Login</a></li>
             {% endif %}
           </ul>
         </div>
