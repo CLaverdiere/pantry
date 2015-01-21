@@ -7,6 +7,8 @@ from pygeocoder import Geocoder
 db = SQLAlchemy(app)
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     password = db.Column(db.String(80))
@@ -20,13 +22,10 @@ class User(db.Model):
     geo_y = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=db.func.now()) # TODO fix this being 0.
 
-    def __init__(self, username, password, real_name, address, email):
-        self.username = username
-        self.password = password
-        self.real_name = real_name
-        self.address = address
-        self.email = email
+    foods = db.relationship('Food', backref='owner', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
         geo_results = Geocoder.geocode(self.address)
         self.geo_x = geo_results[0].coordinates[0]
         self.geo_y = geo_results[0].coordinates[1]
@@ -54,36 +53,30 @@ class User(db.Model):
                 .format(self.username, self.real_name, self.address, self.email)
 
 class Food(db.Model):
+    __tablename__ = 'food'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    owner = db.Column(db.String(80))
     quantity = db.Column(db.Integer)
     desired = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-    def __init__(self, name, owner, quantity, desired):
-        self.name = name
-        self.owner = owner
-        self.quantity = quantity
-        self.desired = desired
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
         return 'Food {} {} {} {}' \
                .format(self.name, self.owner, self.quantity)
 
+# TODO relationships.
 class Transaction(db.Model):
+    __tablename__ = 'transaction'
+
     id = db.Column(db.Integer, primary_key=True)
     name_from = db.Column(db.String(80))
     name_to = db.Column(db.String(80))
     item = db.Column(db.String(80))
     price = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=db.func.now())
-
-    def __init__(self, name_from, name_to, item, price):
-        self.name_from = name_from
-        self.name_to = name_to
-        self.item = item
-        self.price = price
 
     def __repr__(self):
         return 'Transaction {} {} {} {}' \

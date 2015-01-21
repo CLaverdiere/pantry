@@ -32,3 +32,9 @@ class LoginForm(Form):
 
     def get_user(self, db):
         return db.session.query(User).filter_by(username=self.username.data).first()
+
+class Dash():
+    def __init__(self, id, name, container):
+        self.id = id
+        self.name = name
+        self.container = container

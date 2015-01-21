@@ -21,36 +21,26 @@ venmo_api_code = ''
 def pantry():
     return render_template('home.html')
 
-# TODO refactor redundant code with shopping_list
 # TODO capitalize food names.
-@app.route("/add_to_pantry", methods=["POST"])
+@app.route("/add_food/<id>", methods=["POST"])
 @login_required
-def add_to_pantry():
-    foods = request.form['food-names-pantry']
-    if(foods):
-        desired = False
-        food_names = foods.replace(' ', '').strip(',').split(',')
+def add_food(id=''):
+    food_str = request.form["food-names-{}".format(id)]
+    name = ''
+    if(food_str):
+        if id == 'pantry':
+            name = 'Pantry'
+            desired = False
+        else:
+            name = 'Shopping List'
+            desired = True
+        food_names = food_str.replace(' ', '').strip(',').split(',')
         for food_name in food_names:
-            food = Food(food_name, current_user.username, foods.count(food_name), desired)
+            food = Food(name=food_name, owner=current_user,
+                        quantity=food_str.count(food_name), desired=desired)
             db.session.add(food)
         db.session.commit()
-        flash("Added new foods to your pantry!", 'success')
-    else:
-        flash("Invalid food list supplied. Sorry.", 'error')
-    return redirect(url_for('dashboard'))
-
-@app.route("/add_to_sl", methods=["POST"])
-@login_required
-def add_to_sl():
-    foods = request.form['food-names-sl']
-    if(foods):
-        desired = True
-        food_names = foods.replace(' ', '').strip(',').split(',')
-        for food_name in food_names:
-            food = Food(food_name, current_user.username, foods.count(food_name), desired)
-            db.session.add(food)
-        db.session.commit()
-        flash("Added new foods to your shopping list!", 'success')
+        flash("Added new foods to your {}!".format(name), 'success')
     else:
         flash("Invalid food list supplied. Sorry.", 'error')
     return redirect(url_for('dashboard'))
@@ -60,14 +50,9 @@ def add_to_sl():
 @app.route("/dashboard", defaults={'page':1})
 @app.route("/dashboard/<int:page>")
 @login_required
-def dashboard(users=[], user_pantry=[], user_sl=[], geo_info=[], page=1):
-    user_pantry = Food.query.filter(Food.owner == current_user.username) \
-                            .filter(Food.desired == False) \
-                            .order_by(Food.name).all()
-
-    user_sl = Food.query.filter(Food.owner == current_user.username) \
-                        .filter(Food.desired == True) \
-                        .order_by(Food.name).all()
+def dashboard(users=[], dashes=[], geo_info=[], page=1):
+    user_pantry = current_user.foods.filter(Food.desired == False).order_by(Food.name).all()
+    user_sl = current_user.foods.filter(Food.desired == True).order_by(Food.name).all()
 
     cx, cy = current_user.geo_x, current_user.geo_y
     users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy))
@@ -79,50 +64,47 @@ def dashboard(users=[], user_pantry=[], user_sl=[], geo_info=[], page=1):
     count = users.count()
     users = users.offset(PER_PAGE * (page - 1)).limit(PER_PAGE)
     pagination = Pagination(page, PER_PAGE, count)
-    return render_template('dashboard.html', users=users, \
-            user_pantry=user_pantry, user_sl=user_sl, geo_info=geo_info,
-            pagination=pagination)
 
+    dashes = []
+    dashes.append(Dash('pantry', 'Pantry', user_pantry))
+    dashes.append(Dash('sl', 'Shopping List', user_sl))
+
+    return render_template('dashboard.html', users=users, \
+            dashes=dashes, geo_info=geo_info, pagination=pagination)
 
 # TODO redundant
-@app.route("/empty_pantry")
+@app.route("/empty_foods/<id>")
 @login_required
-def empty_pantry():
-    owned_foods = Food.query.filter(Food.owner == current_user.username) \
-                            .filter(Food.desired == False).all()
-    for food in owned_foods:
-        db.session.delete(food)
+def empty_pantry(id=''):
+    if id == 'pantry':
+        name = "Pantry"
+        desired = False
+    else:
+        name = "Shopping List"
+        desired = True
+    for food in current_user.foods:
+        if food.desired == desired:
+            db.session.delete(food)
     db.session.commit()
-    flash("Cleared your list!", 'success')
-    return redirect(url_for('dashboard'))
-
-@app.route("/empty_sl")
-@login_required
-def empty_sl():
-    desired_foods = Food.query.filter(Food.owner == current_user.username) \
-                              .filter(Food.desired == True).all()
-    for food in desired_foods:
-        db.session.delete(food)
-    db.session.commit()
-    flash("Cleared your list!", 'success')
+    flash("Cleared your {}!".format(name), 'success')
     return redirect(url_for('dashboard'))
 
 # TODO eliminate geolocation redundancy
 @app.route("/find/<food_name>")
 @login_required
 def find(users=[], food_name=None, geo_info=[]):
-    if food_name:
-        cx, cy = current_user.geo_x, current_user.geo_y
+    # if food_name:
+        # cx, cy = current_user.geo_x, current_user.geo_y
         # users = Food.query.filter(Food.owner == current_user.username) \
         #                   .order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy))
-        food_owners = [food.owner for food in Food.query.filter(Food.name == food_name) \
-                                                        .filter(Food.owner != current_user.username) \
-                                                        .filter(Food.desired == False).all()]
-        users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy)) \
-                          .filter(User.username.in_(food_owners)).all()
-        names = [user.real_name for user in users]
-        dists = [round(haversine_miles(user.geo_x, user.geo_y, cx, cy), 2) for user in users]
-        geo_info = {name:dist for (name, dist) in zip(names, dists)}
+        # food_owners = [food.owner for food in Food.query.filter(Food.name == food_name) \
+        #                                                 .filter(Food.owner != current_user) \
+        #                                                 .filter(Food.desired == False).all()]
+        # users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy)) \
+        #                   .filter(User.username.in_(food_owners)).all()
+        # names = [user.real_name for user in users]
+        # dists = [round(haversine_miles(user.geo_x, user.geo_y, cx, cy), 2) for user in users]
+        # geo_info = {name:dist for (name, dist) in zip(names, dists)}
 
     return render_template('find.html', users=users, food_name=food_name, geo_info=geo_info)
 
@@ -167,7 +149,8 @@ def register():
             flash("Everything is required! Everything! Do it over!", 'error')
             return render_template('register.html')
 
-        new_guy = User(*data)
+        new_guy = User(username=username, password=password, realname=realname,
+                       address=address, email=email)
         db.session.add(new_guy)
         db.session.commit()
 
@@ -236,9 +219,13 @@ def init_sample_db():
 
     db.create_all()
 
-    u1 = User('admin', 'root', 'Admin', '4317 Madonna Rd', 'admin@pantry.com')
-    u2 = User('chlaver1', 'root', 'Chris Laverdiere', '10000 Hilltop Circle', 'cmlaverdiere@gmail.com')
-    u3 = User('kcoxe1', 'root', 'Kevin Coxe', '4502 Oak Ridge Dr', 'kcoxe1@gmail.com')
+    u1 = User(username='admin', password='root', real_name='Admin',
+            address='4317 Madonna Rd', email='admin@pantry.com')
+    u2 = User(username='chlaver1', password='root', real_name='Chris Laverdiere', 
+            address='10000 Hilltop Circle',
+            email='cmlaverdiere@gmail.com')
+    u3 = User(username='kcoxe1', password='root', real_name='Kevin Coxe',
+            address='4502 Oak Ridge Dr', email='kcoxe1@gmail.com')
 
     db.session.add(u1)
     db.session.add(u2)
