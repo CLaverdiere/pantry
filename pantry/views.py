@@ -93,21 +93,17 @@ def empty_pantry(id=''):
 # TODO eliminate geolocation redundancy
 @app.route("/find/<food_name>")
 @login_required
-def find(users=[], food_name=None, geo_info=[]):
-    # if food_name:
-        # cx, cy = current_user.geo_x, current_user.geo_y
-        # users = Food.query.filter(Food.owner == current_user.username) \
-        #                   .order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy))
-        # food_owners = [food.owner for food in Food.query.filter(Food.name == food_name) \
-        #                                                 .filter(Food.owner != current_user) \
-        #                                                 .filter(Food.desired == False).all()]
-        # users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy)) \
-        #                   .filter(User.username.in_(food_owners)).all()
-        # names = [user.real_name for user in users]
-        # dists = [round(haversine_miles(user.geo_x, user.geo_y, cx, cy), 2) for user in users]
-        # geo_info = {name:dist for (name, dist) in zip(names, dists)}
+def find(foods=[], food_name=None, geo_info=[]):
+    if food_name:
+        cx, cy = current_user.geo_x, current_user.geo_y
+        users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy)).all()
+        names = [user.real_name for user in users]
+        dists = [round(haversine_miles(user.geo_x, user.geo_y, cx, cy), 2) for user in users]
+        geo_info = {name:dist for (name, dist) in zip(names, dists)}
+        foods = Food.query.filter(Food.name == food_name) \
+                          .filter(Food.owner != current_user).all()
 
-    return render_template('find.html', users=users, food_name=food_name, geo_info=geo_info)
+    return render_template('find.html', foods=foods, food_name=food_name, geo_info=geo_info)
 
 @app.route("/examples")
 def examples():

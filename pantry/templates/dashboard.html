@@ -7,12 +7,12 @@
 {% block content %}
   {% for dash in dashes %}
     <div id="my-controls" class="col-md-12 panel panel-default">
-      <div id="my-pantry" class="col-md-10">
+      <div id="my-{{ dash.id }}" class="col-md-10">
         <h3>My {{ dash.name }}</h3>
 
         {% if dash.container | length == 0 %}
           <p class="lead">You have no food in your {{ dash.name }}! 
-            <a href="#" class="add-btn-pantry"> Add some</a>!</p>
+            <a href="#" class="add-btn-{{ dash.id }}"> Add some</a>!</p>
         {% else %}
           {% for food in dash.container %}
             <a href="find/{{ food.name }}" 

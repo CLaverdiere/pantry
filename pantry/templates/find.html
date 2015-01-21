@@ -2,10 +2,11 @@
 
 {% block header %}
   <h1>Pantry Search <small>{{ food_name }}</small></h1>
+  <p class="lead">Let's see who has some of that...</p>
 {% endblock %}
 
 {% block content %}
-  {% if users | length != 0 %}
+  {% if foods | length != 0 %}
     <div id="available" class="col-md-10">
       <hr />
       <table class="table table-striped">
@@ -20,15 +21,15 @@
         </thead>
 
         <tbody>
-          {% for user in users %}
+          {% for food in foods if food.owner != current_user %}
             <tr>
-              <td>{{ user.real_name }}</td>
-              <td>{{ geo_info[user.real_name] }}</td>
-              <td>{{ (geo_info[user.real_name] * 60 / 3.1) | round(2) }}</td>
-              <td>{{ user.email }} </td>
+              <td>{{ food.owner.real_name }}</td>
+              <td>{{ geo_info[food.owner.real_name] }}</td>
+              <td>{{ (geo_info[food.owner.real_name] * 60 / 3.1) | round(2) }}</td>
+              <td>{{ food.owner.email }} </td>
               <!-- 
               <td>
-                <a href="/venmo/{{ user.username + '-' + food_name }}">
+                <a href="/venmo/{{ food.owner.username + '-' + food_name }}">
                   <img src="{{ url_for('static', filename='venmologoblue.png') }}" alt = 'Venmo button' height=15% />  
                 </a>
               </td>
@@ -39,6 +40,6 @@
       </table>
     </div>
   {% else %}
-    <p class="lead"> Nobody offering any {{ food_name }}, sorry!</p>
+    <p class="lead">Bummer. Nobody's offering any {{ food_name }}. Sorry!</p>
   {% endif %}
 {% endblock %}
