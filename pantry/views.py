@@ -137,16 +137,16 @@ def register():
     else:
         username = request.form['username']
         password = request.form['password']
-        realname = request.form['realname']
+        real_name = request.form['realname']
         address = request.form['address']
         email = request.form['email']
 
-        data = [username, password, realname, address, email]
+        data = [username, password, real_name, address, email]
         if any(not field for field in data):
             flash("Everything is required! Everything! Do it over!", 'error')
             return render_template('register.html')
 
-        new_guy = User(username=username, password=password, realname=realname,
+        new_guy = User(username=username, password=password, real_name=real_name,
                        address=address, email=email)
         db.session.add(new_guy)
         db.session.commit()
