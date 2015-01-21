@@ -1,7 +1,7 @@
 from pantry.forms import *
 from pantry.utils import *
 
-import sqlite3, math, requests, os
+import sqlite3, math, requests, os, datetime
 
 from flask import Flask, url_for, render_template, request, redirect, abort, flash, g
 from flask.ext import login
@@ -36,7 +36,7 @@ def add_food(id=''):
             desired = True
         food_names = food_str.replace(' ', '').strip(',').split(',')
         for food_name in food_names:
-            food = Food(name=food_name, owner=current_user,
+            food = Food(name=food_name.capitalize(), owner=current_user,
                         quantity=food_str.count(food_name), desired=desired)
             db.session.add(food)
         db.session.commit()
@@ -46,13 +46,13 @@ def add_food(id=''):
     return redirect(url_for('dashboard'))
 
 #TODO eliminate passing all users.
-#TODO remove redundancy with pantry and sl.
 @app.route("/dashboard", defaults={'page':1})
 @app.route("/dashboard/<int:page>")
 @login_required
-def dashboard(users=[], dashes=[], geo_info=[], page=1):
-    user_pantry = current_user.foods.filter(Food.desired == False).order_by(Food.name).all()
-    user_sl = current_user.foods.filter(Food.desired == True).order_by(Food.name).all()
+def dashboard(users=[], dashes=[], geo_info=[], ages=[], page=1):
+    user_foods = current_user.foods.order_by(Food.name)
+    user_pantry = user_foods.filter(Food.desired == False).all()
+    user_sl = user_foods.filter(Food.desired == True).all()
 
     cx, cy = current_user.geo_x, current_user.geo_y
     users = User.query.order_by('abs(geo_x - {}) + abs(geo_y - {})'.format(cx, cy))
@@ -69,10 +69,11 @@ def dashboard(users=[], dashes=[], geo_info=[], page=1):
     dashes.append(Dash('pantry', 'Pantry', user_pantry))
     dashes.append(Dash('sl', 'Shopping List', user_sl))
 
-    return render_template('dashboard.html', users=users, \
-            dashes=dashes, geo_info=geo_info, pagination=pagination)
+    ages = {food : (datetime.datetime.now() - food.created_at).days for food in user_foods}
 
-# TODO redundant
+    return render_template('dashboard.html', users=users, \
+            dashes=dashes, geo_info=geo_info, ages=ages, pagination=pagination)
+
 @app.route("/empty_foods/<id>")
 @login_required
 def empty_pantry(id=''):
@@ -221,7 +222,7 @@ def init_sample_db():
 
     u1 = User(username='admin', password='root', real_name='Admin',
             address='4317 Madonna Rd', email='admin@pantry.com')
-    u2 = User(username='chlaver1', password='root', real_name='Chris Laverdiere', 
+    u2 = User(username='chlaver1', password='root', real_name='Chris Laverdiere',
             address='10000 Hilltop Circle',
             email='cmlaverdiere@gmail.com')
     u3 = User(username='kcoxe1', password='root', real_name='Kevin Coxe',

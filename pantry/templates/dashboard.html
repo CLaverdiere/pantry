@@ -15,7 +15,17 @@
             <a href="#" class="add-btn-pantry"> Add some</a>!</p>
         {% else %}
           {% for food in dash.container %}
-            <a href="find/{{ food.name }}" class="btn btn-default food-btn">{{ food.name }}</a></li>
+            <a href="find/{{ food.name }}" 
+               class="btn btn-default food-btn 
+               {% if ages[food] < 2 %}
+                 fresh
+               {% elif ages[food] < 5 %}
+                 not-fresh
+               {% else %}
+                 rotten
+               {% endif %}
+               "> {{ food.name }}
+           </a></li>
           {% endfor %}
         {% endif %}
 
@@ -68,7 +78,7 @@
       </thead>
 
       <tbody>
-        {% for user in users %}
+        {% for user in users if user != current_user %}
           <tr>
             <td>{{ user.real_name }}</td>
             <td>{{ geo_info[user.real_name] }}</td>
@@ -93,7 +103,7 @@
       </thead>
 
       <tbody>
-        {% for user in users %}
+        {% for user in users if user != current_user %}
           <tr>
             <td>{{ user.real_name }}</td>
             <td>{{ geo_info[user.real_name] }}</td>

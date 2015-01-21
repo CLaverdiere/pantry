@@ -1,14 +1,7 @@
+/* Base Classes */
+
 body {
   padding-bottom: 70px;
-}
-
-.btn {
-  margin-right: 5px;
-}
-
-.error {
-  font-size: 20px;
-  color: red;
 }
 
 img {
@@ -23,15 +16,42 @@ footer nav p {
   margin: 15px;
 }
 
-.success {
-  font-size: 20px;
-  color: green;
+.btn {
+  margin-right: 5px;
 }
 
 #top-nav {
   margin-top: 10px;
 }
 
+
+/* Flash classes */
+
+.error {
+  font-size: 20px;
+  color: red;
+}
+
+.success {
+  font-size: 20px;
+  color: green;
+}
+
+
+/* Food classes */
+
 .food-btn {
   margin: 5px;
+}
+
+.rotten {
+  background: #f2dede;
+}
+
+.not-fresh {
+  background: #fcf8e3;
+}
+
+.fresh {
+  background: #dff0d8
 }
