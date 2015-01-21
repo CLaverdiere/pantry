@@ -9,6 +9,10 @@ app.config.update(dict(
     DEBUG=True,
     SECRET_KEY='pantry key',
 ))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['DATABASE']
+
+# Use sqlite3 locally, postgres on heroku.
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+        os.environ.get('DATABASE_URL') or \
+        ('sqlite:///' + app.config['DATABASE'])
 
 from pantry.views import *
